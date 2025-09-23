@@ -1,0 +1,2 @@
+# Proyecto-ASIR
+Desarrollo TFC para FP superior de ASIR. Diseñar, implementar y desplegar un sistema integral para la gestión de denuncias para la Guardia Civil que permita el registro, consulta y administración centralizada de denuncias desde múltiples puestos distribuidos geográficamente. Teniendo en cuenta la escalabilidad y seguridad. 
