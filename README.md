@@ -10,34 +10,35 @@ Registro, consulta y administración centralizada desde múltiples puestos distr
 
 ## ⚙️ Arquitectura
 
-🧭 Balanceadores:
-  🖥️ balanceador1:
-    - 🔀 Traefik
-    - 🛡️ Keepalived (activo)
-  🖥️ balanceador2:
-    - 🔀 Traefik
-    - 🛡️ Keepalived (pasivo)
+### 🧭 Balanceadores
+- 🖥️ **Balanceador 1**
+  - 🔀 Traefik
+  - 🛡️ Keepalived (activo)
+- 🖥️ **Balanceador 2**
+  - 🔀 Traefik
+  - 🛡️ Keepalived (pasivo)
 
-🌐 Servidores Web:
-  🖥️ servidorWeb1:
-    - 🐳 Docker:
-        - 📦 web1: NGINX + PHP
-        - 📦 web2: NGINX + PHP
-  🖥️ servidorWeb2:
-    - 🐳 Docker:
-        - 📦 web3: NGINX + PHP
-        - 📦 web4: NGINX + PHP
+### 🌐 Servidores Web
+- 🖥️ **Servidor Web 1**
+  - 🐳 Docker
+    - 📦 web1: NGINX + PHP
+    - 📦 web2: NGINX + PHP
+- 🖥️ **Servidor Web 2**
+  - 🐳 Docker
+    - 📦 web3: NGINX + PHP
+    - 📦 web4: NGINX + PHP
 
-🗄️ Base de Datos:
-  🖥️ servidorSQL:
-    - 🪟 Windows Server
-    - 🧠 SQL Server
-    - 📄 estructura.sql
+### 🗄️ Base de Datos
+- 🖥️ **Servidor SQL**
+  - 🪟 Windows Server
+  - 🧠 SQL Server
+  - 📄 estructura.sql
 
-💾 Backup:
-  🖥️ servidorBackup:
-    - 📦 Copia de seguridad (.bak)
-    - ☁️ Sincronización con Google Drive
-    - 🔁 Automatización con RClone
+### 💾 Backup
+- 🖥️ **Servidor Backup**
+  - 📦 Copia de seguridad (.bak)
+  - ☁️ Sincronización con Google Drive
+  - 🔁 Automatización con RClone
+
 
 ---
