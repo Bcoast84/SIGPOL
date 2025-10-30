@@ -1,0 +1,16 @@
+http:
+  routers:
+    web-router:
+      entryPoints:
+        - "web"
+      rule: "PathPrefix(\"/\")"
+      service: "web-servers"
+  
+  services:
+    web-servers:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.30:8080"  # web1
+          - url: "http://192.168.1.30:8081"  # web2
+          - url: "http://192.168.1.31:8082"  # web3
+          - url: "http://192.168.1.31:8083"  # web4

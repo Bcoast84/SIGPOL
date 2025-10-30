@@ -1,0 +1,57 @@
+version: '3.7'
+services:
+  # 1. PHP Processor (Construido con SQLSRV)
+  gc-php-fpm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gc-php-fpm
+    # Montamos el código PHP
+    volumes:
+      - /home/admin/gc_sistema:/var/www/html
+    environment:
+      # **Sintaxis de Lista Consistente (con guiones)**
+      - ACCEPT_EULA=Y
+      # Variables de conexión para PHP (usadas en db_test.php)
+      - DB_HOST=gc-db           # <-- Nombre del servicio DB
+      - DB_USER=sa
+      - DB_PASS=Abcd1234. # <-- ¡CAMBIA ESTO!
+      - DB_NAME=master
+    depends_on:
+      - gc-db # Dependemos de que la DB esté levantada
+
+  # 2. Web Server 1 (Nginx - Puerto 8080)
+  web1:
+    image: nginx:alpine
+    container_name: web1
+    ports:
+      - "8080:80"
+    volumes:
+      # Asegúrate de haber creado este archivo
+      - /home/admin/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /home/admin/gc_sistema:/usr/share/nginx/html:ro
+    depends_on:
+      - gc-php-fpm
+
+  # 3. Web Server 2 (Nginx - Puerto 8081)
+  web2:
+    image: nginx:alpine
+    container_name: web2
+    ports:
+      - "8081:80"
+    volumes:
+      - /home/admin/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /home/admin/gc_sistema:/usr/share/nginx/html:ro
+    depends_on:
+      - gc-php-fpm
+
+  # 4. Servicio de Base de Datos SQL Server (NUEVO)
+  gc-db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: gc-db
+    environment:
+      # Credenciales para el contenedor de SQL Server (¡Debe coincidir con DB_PASS!)
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Abcd1234. # <-- ¡CAMBIA ESTO!
+    ports:
+      - "1433:1433" # Puerto por defecto de SQL Server
