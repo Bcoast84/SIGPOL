@@ -1,0 +1,8 @@
+# PROMETHEUS CONFIG
+
+scrape_configs:
+  - job_name: 'traefik'
+    metrics_path: /metrics
+    scheme: https                # Usa https si expusiste métricas en websecure
+    static_configs:
+      - targets: ['192.168.1.100:443']   # IP flotante + puerto del entryPoint

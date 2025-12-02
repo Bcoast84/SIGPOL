@@ -1,0 +1,18 @@
+# DOCKER-COMPOSE - BALANCEADOR 1
+
+version: '3'
+
+services:
+  traefik:
+    image: traefik:2.11                  # Imagen oficial de Traefik fija para evitar actualizaciones
+    container_name: traefik                # Nombre del contenedor
+    ports:
+      - "80:80"                            # Expone el puerto 80 para HTTP
+      - "443:443"                          # Expone el puerto 443 para HTTPS
+      - "8080:8080"                        # Expone el puerto 8080 para control de Traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # Permite a Traefik detectar otros contenedores
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro   # Configuración estática de Traefik
+      - ./dynamic.yml:/etc/traefik/dynamic.yml:ro   # Configuración dinámica
+      - ./certs:/etc/traefik/certs:ro               # Carpeta con certificados TLS
+    restart: unless-stopped                # Reinicia el contenedor automáticamente

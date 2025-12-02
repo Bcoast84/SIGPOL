@@ -1,0 +1,53 @@
+# DOCKER-COMPOSE - WEBSERVER2
+
+version: "3.8"
+
+services:
+  # -------------------------
+  # Contenedor web3
+  # -------------------------
+  web3:
+    build: .                                # Construye la imagen usando el Dockerfile
+    container_name: web3                    # Nombre del contenedor
+    hostname: web3                          # Nombre de host interno
+    ports:
+      - "8082:80"                           # Expone el puerto 80 del contenedor en el 8082 del host
+    volumes:
+      - ./web3/app:/var/www/html            # Monta el código de la aplicación
+    restart: always                         # Reinicia automáticamente
+    labels:
+      - "traefik.enable=true"               # Habilita Traefik
+      - "traefik.http.routers.web3.rule=Host(`192.168.1.100`)"   # Regla: VIP compartida
+      - "traefik.http.routers.web3.entrypoints=websecure"        # Solo HTTPS
+      - "traefik.http.routers.web3.tls=true"                     # TLS activado
+
+  # -------------------------
+  # Contenedor web4
+  # -------------------------
+  web4:
+    build: .                                # Construye la imagen usando el mismo Dockerfile
+    container_name: web4                    # Nombre del contenedor
+    hostname: web4                          # Nombre de host interno
+    ports:
+      - "8083:80"                           # Expone el puerto 80 del contenedor en el 8083 del host
+    volumes:
+      - ./web4/app:/var/www/html            # Monta el código de la aplicación
+    restart: always                         # Reinicia automáticamente
+    labels:
+      - "traefik.enable=true"               # Habilita Traefik
+      - "traefik.http.routers.web4.rule=Host(`192.168.1.100`)"       # Regla: VIP compartida
+      - "traefik.http.routers.web4.entrypoints=websecure"            # Solo HTTPS
+      - "traefik.http.routers.web4.tls=true"                         # TLS activado
+
+  # -------------------------
+  # SQL Server (para sesiones y datos)
+  # -------------------------
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest   # Imagen oficial de SQL Server 2022
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y                                   # Acepta licencia
+      - SA_PASSWORD=Abcd1234.                           # Contraseña del usuario SA
+    ports:
+      - "1433:1433"                                     # Puerto estándar de SQL Server
+    restart: always

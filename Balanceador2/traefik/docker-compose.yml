@@ -1,0 +1,18 @@
+# DOCKER-COMPOSE - BALANCEADOR 2
+
+version: '3'
+
+services:
+  traefik:
+    image: traefik:2.11                  # Versión fija de Traefik (evita sorpresas con "latest")
+    container_name: traefik2             # Nombre distinto para no solaparse con el balanceador1
+    ports:
+      - "80:80"                          # HTTP
+      - "443:443"                        # HTTPS
+      - "8080:8080"                      # Panel de control de Traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock     # Permite a Traefik detectar otros contenedores
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro     # Configuración estática de Traefik
+      - ./dynamic.yml:/etc/traefik/dynamic.yml:ro     # Configuración dinámica
+      - ./certs:/etc/traefik/certs:ro                 # Carpeta con certificados TLS
+    restart: unless-stopped              # Reinicia el contenedor automáticamente

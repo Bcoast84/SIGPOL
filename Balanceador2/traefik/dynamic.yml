@@ -1,0 +1,50 @@
+# TRAEFIK DYNAMIC CONFIG - BALANCEADOR 2
+
+
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/server.crt   # Certificado TLS
+      keyFile: /etc/traefik/certs/server.key
+
+http:
+  routers:
+    redirect-to-https:                          # Redirección HTTPS
+      entryPoints:
+        - "web"
+      rule: "Host(`192.168.1.100`)"             # Regla: VIP compartida
+      middlewares:
+        - redirect-to-https
+      service: noop@internal
+
+    websecure:
+      entryPoints:
+        - "websecure"                           # Entrada HTTPS (puerto 443)
+      rule: "Host(`192.168.1.100`)"             # Regla: VIP compartida
+      service: web-servers                      # Servicio backend
+      tls: {}                                   # Activa TLS
+      middlewares:
+        - add-balancer-headers                  # Añade cabecera personalizada
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https                           # Fuerza redirección a HTTPS
+        permanent: true                         # Redirección permanente
+
+    add-balancer-headers:
+      headers:
+        customRequestHeaders:
+          X-Balancer: "Traefik2"                # Identificador de este balanceador
+
+  services:
+    web-servers:
+      loadBalancer:
+        servers:                                # Lista de servidores backend
+          - url: "http://192.168.1.30:8080"     # web1
+          - url: "http://192.168.1.30:8081"     # web2
+          - url: "http://192.168.1.31:8082"     # web3
+          - url: "http://192.168.1.31:8083"     # web4
+        healthCheck:
+          path: /login.php                      # Ruta usada para comprobar salud de los backends
+          interval: "10s"                       # Cada 10 segundos
+          timeout: "3s"                         # Tiempo máximo de respuesta

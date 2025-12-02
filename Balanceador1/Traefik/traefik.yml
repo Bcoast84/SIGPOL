@@ -1,0 +1,25 @@
+# TRAEFIK STATIC CONFIG - BALANCEADOR 1
+
+api:
+  dashboard: true        # Activa el panel web de Traefik
+  insecure: true         # Permite acceder al panel sin contraseña
+
+entryPoints:
+  web:
+    address: ":80"       # Entrada para tráfico HTTP (puerto 80)
+  websecure:
+    address: ":443"      # Entrada para tráfico HTTPS (puerto 443)
+
+providers:
+  file:
+    filename: "/etc/traefik/dynamic.yml"   # Archivo con la configuración dinámica
+    watch: false                           # No aplicar cambios sin reinicio
+
+log:
+  level: DEBUG           # Nivel de detalle DEBUG para depuración
+
+metrics:                 # Por si me da tiempo a añadir Prometheus
+  prometheus:
+    addEntryPointsLabels: true   # Añade etiquetas de entryPoints
+    addServicesLabels: true      # Añade etiquetas de servicios
+    entryPoint: websecure        # Expone métricas en HTTPS
