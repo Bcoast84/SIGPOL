@@ -1,53 +1,73 @@
 # DOCKER-COMPOSE - WEBSERVER2
 
-version: "3.8"
+version: "3.9"                            
 
 services:
   # -------------------------
   # Contenedor web3
   # -------------------------
   web3:
-    build: .                                # Construye la imagen usando el Dockerfile
-    container_name: web3                    # Nombre del contenedor
-    hostname: web3                          # Nombre de host interno
+    build: .                             
+    container_name: web3                    
+    hostname: web3                           
     ports:
-      - "8082:80"                           # Expone el puerto 80 del contenedor en el 8082 del host
+      - "8082:80"                            # Puerto 8082 del host
     volumes:
-      - ./web3/app:/var/www/html            # Monta el código de la aplicación
-    restart: always                         # Reinicia automáticamente
+      - ./web3/app:/var/www/html             # Monta el código de la aplicación web3 en el contenedor
+      - ./apache-status.conf:/usr/local/apache2/conf/extra/httpd-status.conf  # Configuración de Apache para status
+    restart: always                          # Reinicia automáticamente si se detiene
     labels:
-      - "traefik.enable=true"               # Habilita Traefik
-      - "traefik.http.routers.web3.rule=Host(`192.168.1.100`)"   # Regla: VIP compartida
-      - "traefik.http.routers.web3.entrypoints=websecure"        # Solo HTTPS
-      - "traefik.http.routers.web3.tls=true"                     # TLS activado
+      - "traefik.enable=true"                # Habilita Traefik para este contenedor
+      - "traefik.http.routers.web3.rule=Host(`192.168.1.100`)"  # Regla de enrutamiento: host igual a 192.168.1.100
+      - "traefik.http.routers.web3.entrypoints=websecure"       # Usa el entrypoint websecure (HTTPS)
+      - "traefik.http.routers.web3.tls=true"                    # Activa TLS para este router
+
+  # -------------------------
+  # Exporter para web3
+  # -------------------------
+  web3_exporter:
+    image: bitnami/apache-exporter:latest    # Imagen oficial de Apache Exporter (para Prometheus)
+    container_name: web3_exporter
+    ports:
+      - "9119:9117"                          # Expone métricas en el puerto 9119 del host (internamente 9117)
+    command: --scrape_uri=http://web3/server-status?auto
+                                             # Configura el exporter para leer métricas del endpoint /server-status de web3
+    depends_on:
+      - web3                                 # Se asegura de que web3 esté levantado antes de iniciar el exporter
+    restart: always
 
   # -------------------------
   # Contenedor web4
   # -------------------------
   web4:
-    build: .                                # Construye la imagen usando el mismo Dockerfile
-    container_name: web4                    # Nombre del contenedor
-    hostname: web4                          # Nombre de host interno
+    build: .                                
+    container_name: web4                    
+    hostname: web4                        
     ports:
-      - "8083:80"                           # Expone el puerto 80 del contenedor en el 8083 del host
+      - "8083:80"                            # Puerto 8083 del host
     volumes:
-      - ./web4/app:/var/www/html            # Monta el código de la aplicación
-    restart: always                         # Reinicia automáticamente
-    labels:
-      - "traefik.enable=true"               # Habilita Traefik
-      - "traefik.http.routers.web4.rule=Host(`192.168.1.100`)"       # Regla: VIP compartida
-      - "traefik.http.routers.web4.entrypoints=websecure"            # Solo HTTPS
-      - "traefik.http.routers.web4.tls=true"                         # TLS activado
-
-  # -------------------------
-  # SQL Server (para sesiones y datos)
-  # -------------------------
-  db:
-    image: mcr.microsoft.com/mssql/server:2022-latest   # Imagen oficial de SQL Server 2022
-    container_name: sqlserver
-    environment:
-      - ACCEPT_EULA=Y                                   # Acepta licencia
-      - SA_PASSWORD=Abcd1234.                           # Contraseña del usuario SA
-    ports:
-      - "1433:1433"                                     # Puerto estándar de SQL Server
+      - ./web4/app:/var/www/html             # Monta el código de la aplicación web4 en el contenedor
+      - ./apache-status.conf:/usr/local/apache2/conf/extra/httpd-status.conf  # Configuración de Apache para status
     restart: always
+    labels:
+      - "traefik.enable=true"                # Habilita Traefik para este contenedor
+      - "traefik.http.routers.web4.rule=Host(`192.168.1.100`)"  # Regla de enrutamiento: host igual a 192.168.1.100
+      - "traefik.http.routers.web4.entrypoints=websecure"       # Usa el entrypoint websecure (HTTPS)
+      - "traefik.http.routers.web4.tls=true"                    # Activa TLS para este router
+  # -------------------------
+  # Exporter para web4
+  # -------------------------
+  web4_exporter:
+    image: bitnami/apache-exporter:latest   
+    container_name: web4_exporter
+    ports:
+      - "9120:9117"                          # Expone métricas en el puerto 9120 del host (internamente 9117)
+    command: --scrape_uri=http://web4/server-status?auto
+                                             # Configura el exporter para leer métricas del endpoint /server-status de web4
+    depends_on:
+      - web4                                 # Se asegura de que web4 esté levantado antes de iniciar el exporter
+    restart: always
+
+networks:
+  default:
+    name: sigpol_net                         # Define la red Docker personalizada para todos los servicios

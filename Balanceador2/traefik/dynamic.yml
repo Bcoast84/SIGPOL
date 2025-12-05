@@ -3,48 +3,48 @@
 
 tls:
   certificates:
-    - certFile: /etc/traefik/certs/server.crt   # Certificado TLS
-      keyFile: /etc/traefik/certs/server.key
+    - certFile: /etc/traefik/certs/sigpol.crt   # Certificado público TLS para servir HTTPS
+      keyFile: /etc/traefik/certs/sigpol.key    # Clave privada asociada al certificado
 
 http:
   routers:
-    redirect-to-https:                          # Redirección HTTPS
+    redirect-to-https:
       entryPoints:
-        - "web"
-      rule: "Host(`192.168.1.100`)"             # Regla: VIP compartida
+        - "web"                                
+      rule: "Host(`sigpol`)"                    # Aplica solo si el host solicitado es 'sigpol'
       middlewares:
-        - redirect-to-https
-      service: noop@internal
+        - redirect-to-https                     # Middleware que fuerza redirección a HTTPS
+      service: noop@internal                    # Servicio interno vacío
 
     websecure:
       entryPoints:
-        - "websecure"                           # Entrada HTTPS (puerto 443)
-      rule: "Host(`192.168.1.100`)"             # Regla: VIP compartida
-      service: web-servers                      # Servicio backend
-      tls: {}                                   # Activa TLS
+        - "websecure"                           # Escucha en el entrypoint websecure (puerto 443)
+      rule: "Host(`sigpol`)"                    # Aplica solo si el host solicitado es 'sigpol'
+      service: web-servers                      # Balanceador de servidores web
+      tls: {}                                   # Activa TLS usando el certificado
       middlewares:
-        - add-balancer-headers                  # Añade cabecera personalizada
+        - add-balancer-headers                  # Middleware que añade cabeceras personalizadas
 
   middlewares:
     redirect-to-https:
       redirectScheme:
-        scheme: https                           # Fuerza redirección a HTTPS
-        permanent: true                         # Redirección permanente
+        scheme: https                           # Redirige tráfico HTTP a HTTPS
+        permanent: true                         # Redirección permanente (301)
 
     add-balancer-headers:
       headers:
         customRequestHeaders:
-          X-Balancer: "Traefik2"                # Identificador de este balanceador
+          X-Balancer: "Traefik2"                # Cabecera personalizada para identificar este balanceador
 
   services:
     web-servers:
       loadBalancer:
-        servers:                                # Lista de servidores backend
+        servers:
           - url: "http://192.168.1.30:8080"     # web1
           - url: "http://192.168.1.30:8081"     # web2
           - url: "http://192.168.1.31:8082"     # web3
           - url: "http://192.168.1.31:8083"     # web4
         healthCheck:
-          path: /login.php                      # Ruta usada para comprobar salud de los backends
-          interval: "10s"                       # Cada 10 segundos
-          timeout: "3s"                         # Tiempo máximo de respuesta
+          path: /login.php                      # Endpoint usado para comprobar salud de los servidores
+          interval: "10s"                       # Intervalo de chequeo cada 10 segundos
+          timeout: "3s"                         # Tiempo máximo de espera para cada chequeo

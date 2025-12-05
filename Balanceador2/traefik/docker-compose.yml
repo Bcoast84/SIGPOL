@@ -1,18 +1,28 @@
 # DOCKER-COMPOSE - BALANCEADOR 2
 
-version: '3'
+version: '3'                         
 
 services:
   traefik:
-    image: traefik:2.11                  # Versión fija de Traefik (evita sorpresas con "latest")
-    container_name: traefik2             # Nombre distinto para no solaparse con el balanceador1
+    image: traefik:2.11                    
+    container_name: traefik                
     ports:
-      - "80:80"                          # HTTP
-      - "443:443"                        # HTTPS
-      - "8080:8080"                      # Panel de control de Traefik
+      - "80:80"                            # Expone el puerto 80 → HTTP
+      - "443:443"                          # Expone el puerto 443 → HTTPS
+      - "8080:8080"                        # Expone el puerto 8080 → Dashboard de Traefik
+      - "8082:8082"                        # Expone el puerto 8082 → Métricas Prometheus
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock     # Permite a Traefik detectar otros contenedores
-      - ./traefik.yml:/etc/traefik/traefik.yml:ro     # Configuración estática de Traefik
-      - ./dynamic.yml:/etc/traefik/dynamic.yml:ro     # Configuración dinámica
-      - ./certs:/etc/traefik/certs:ro                 # Carpeta con certificados TLS
-    restart: unless-stopped              # Reinicia el contenedor automáticamente
+      - /var/run/docker.sock:/var/run/docker.sock   # Detectar contenedores Docker en ejecución
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro  # Archivo de configuración estática de Traefik
+      - ./dynamic.yml:/etc/traefik/dynamic.yml:ro  # Archivo de configuración dinámica
+      - ./certs:/etc/traefik/certs:ro              # Carpeta con certificados TLS
+    command:
+      - --entrypoints.web.address=:80              # Define entrypoint 'web' en puerto 80
+      - --entrypoints.websecure.address=:443       # Define entrypoint 'websecure' en puerto 443
+      - --entrypoints.metrics.address=:8082        # Define entrypoint 'metrics' en puerto 8082
+      - --api.dashboard=true                       # Activa el dashboard de Traefik en puerto 8080
+      - --metrics.prometheus=true                  # Activa exportación de métricas para Prometheus
+      - --metrics.prometheus.addEntryPointsLabels=true   # Añade etiquetas de entrypoints en métricas
+      - --metrics.prometheus.addServicesLabels=true      # Añade etiquetas de servicios en métricas
+      - --metrics.prometheus.entryPoint=metrics          # Define que las métricas se sirvan en el entrypoint 'metrics'
+    restart: unless-stopped                        # Reinicia automáticamente 

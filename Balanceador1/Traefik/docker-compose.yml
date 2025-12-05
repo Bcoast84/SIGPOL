@@ -1,76 +1,89 @@
 # DOCKER-COMPOSE - BALANCEADOR 1
-version: '3'
+
+version: '3'                             
 
 services:
   # -------------------------
-  # Traefik
+  # Traefik (Balanceador + métricas)
   # -------------------------
   traefik:
-    image: traefik:2.11                  # Imagen de Traefik
-    container_name: traefik              # Nombre del contenedor
+    image: traefik:2.11                   
+    container_name: traefik               
     ports:
-      - "80:80"                          # Puerto HTTP
-      - "443:443"                        # Puerto HTTPS
-      - "8080:8080"                      # Panel de control de Traefik
+      - "80:80"                            # HTTP
+      - "443:443"                          # HTTPS
+      - "8080:8080"                        # Dashboard de Traefik
+      - "8082:8082"                        # Métricas Prometheus
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock   # Permite a Traefik detectar otros contenedores
-      - ./traefik.yml:/etc/traefik/traefik.yml:ro   # Configuración estática
-      - ./dynamic.yml:/etc/traefik/dynamic.yml:ro   # Configuración dinámica
-      - ./certs:/etc/traefik/certs:ro               # Certificados TLS
-    restart: unless-stopped              # Reinicia automáticamente si se cae
+      - /var/run/docker.sock:/var/run/docker.sock   # Permite a Traefik detectar contenedores Docker
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro  # Configuración estática
+      - ./dynamic.yml:/etc/traefik/dynamic.yml:ro  # Configuración dinámica (routers, middlewares, servicios)
+      - ./certs:/etc/traefik/certs:ro              # Certificados TLS
+    command:
+      - --entrypoints.web.address=:80              # Define entrypoint 'web' en puerto 80
+      - --entrypoints.websecure.address=:443       # Define entrypoint 'websecure' en puerto 443
+      - --entrypoints.metrics.address=:8082        # Define entrypoint 'metrics' en puerto 8082
+      - --api.dashboard=true                       # Activa el dashboard de Traefik
+      - --metrics.prometheus=true                  # Exporta métricas para Prometheus
+      - --metrics.prometheus.addEntryPointsLabels=true   # Añade etiquetas de entrypoints
+      - --metrics.prometheus.addServicesLabels=true      # Añade etiquetas de servicios
+      - --metrics.prometheus.entryPoint=metrics          # Métricas disponibles en el entrypoint 'metrics'
+    restart: unless-stopped                   # Reinicio automático
     networks:
-      - monitoring                       # Red compartida con Prometheus/Grafana
+      - monitoring                            # Red compartida
 
   # -------------------------
-  # Prometheus: recolector de métricas
-  # -------------------------
-  prometheus:
-    image: prom/prometheus:latest        # Imagen de Prometheus
-    container_name: prometheus
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro  # Config principal
-      - prometheus_data:/prometheus      # Volumen para guardar históricos de métricas
-    ports:
-      - "9090:9090"                      # Interfaz web de Prometheus
-    restart: unless-stopped
-    networks:
-      - monitoring
-
-  # -------------------------
-  # Grafana: visualización de métricas
-  # -------------------------
-  grafana:
-    image: grafana/grafana-oss:latest    # Imagen oficial de Grafana OSS
-    container_name: grafana
-    ports:
-      - "3000:3000"                      # Interfaz web de Grafana
-    volumes:
-      - ./grafana:/var/lib/grafana       # Volumen para guardar dashboards y configuración
-    restart: unless-stopped
-    networks:
-      - monitoring
-
-  # -------------------------
-  # Node Exporter: métricas de la VM
+  # Node Exporter (métricas del host)
   # -------------------------
   node-exporter:
-    image: prom/node-exporter:latest     # Imagen de Node Exporter
+    image: prom/node-exporter:latest         
     container_name: node-exporter
     ports:
-      - "9100:9100"                      # Puerto de métricas
-    pid: "host"                          # Permite acceder a métricas del host
+      - "9100:9100"                           # Expone métricas del host
+    pid: "host"                               # Accede al PID del host para métricas del sistema
     restart: unless-stopped
     networks:
       - monitoring
 
-# -------------------------
-# Volúmenes persistentes
-# -------------------------
-volumes:
-  prometheus_data:                       # Volumen para datos de Prometheus
+  # -------------------------
+  # Prometheus (recoge métricas)
+  # -------------------------
+  prometheus:
+    image: prom/prometheus:latest            
+    container_name: prometheus
+    ports:
+      - "9090:9090"                           # Interfaz web de Prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro   # Configuración de Prometheus
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # -------------------------
+  # Grafana (visualización de métricas)
+  # -------------------------
+  grafana:
+    image: grafana/grafana:latest           
+    container_name: grafana
+    ports:
+      - "3000:3000"                           # Interfaz web de Grafana
+    volumes:
+      - grafana-data:/var/lib/grafana         # Volumen persistente para datos de Grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin          # Usuario administrador por defecto
+      - GF_SECURITY_ADMIN_PASSWORD=admin      # Contraseña administrador por defecto
+    restart: unless-stopped
+    networks:
+      - monitoring
 
 # -------------------------
 # Red compartida
 # -------------------------
 networks:
-  monitoring:                            # Red interna para que los servicios se vean entre sí
+  monitoring:
+
+# -------------------------
+# Volúmenes persistentes
+# -------------------------
+volumes:
+  grafana-data:                               # Dashboards y configuración de Grafana

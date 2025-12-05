@@ -1,53 +1,74 @@
 # DOCKER-COMPOSE - WEBSERVER1
 
-version: "3.8"
+version: "3.9"                               # Versión del formato de Docker Compose
 
 services:
   # -------------------------
   # Contenedor web1
   # -------------------------
   web1:
-    build: .                                # Construye la imagen usando el Dockerfile
-    container_name: web1                    # Nombre del contenedor
-    hostname: web1                          # Nombre de host interno
+    build: .                                 # Construye la imagen a partir del Dockerfile en el directorio actual
+    container_name: web1                     # Nombre del contenedor
+    hostname: web1                           # Hostname interno dentro de la red Docker
     ports:
-      - "8080:80"                           # Expone el puerto 80 del contenedor en el 8080 del host
+      - "8080:80"                            # Expone el puerto 80 del contenedor en el puerto 8080 del host
     volumes:
-      - ./web1/app:/var/www/html            # Monta el código de la aplicación
-    restart: always                         # Reinicia automáticamente
+      - ./web1/app:/var/www/html             # Monta el código de la aplicación web1 en el contenedor
+      - ./apache-status.conf:/usr/local/apache2/conf/extra/httpd-status.conf  # Configuración de Apache para status
+    restart: always                          # Reinicia automáticamente si se detiene
     labels:
-      - "traefik.enable=true"               # Habilita Traefik
-      - "traefik.http.routers.web1.rule=Host(`192.168.1.100`)"   # Regla: VIP compartida
-      - "traefik.http.routers.web1.entrypoints=websecure"        # Solo HTTPS
-      - "traefik.http.routers.web1.tls=true"                     # TLS activado
+      - "traefik.enable=true"                # Habilita Traefik para este contenedor
+      - "traefik.http.routers.web1.rule=Host(`192.168.1.100`)"  # Regla de enrutamiento: host igual a 192.168.1.100
+      - "traefik.http.routers.web1.entrypoints=websecure"       # Usa el entrypoint websecure (HTTPS)
+      - "traefik.http.routers.web1.tls=true"                    # Activa TLS para este router
+
+# -------------------------
+# Exporter para web1
+# -------------------------
+  web1_exporter:
+    image: bitnami/apache-exporter:latest    # Imagen oficial de Apache Exporter (para Prometheus)
+    container_name: web1_exporter
+    ports:
+      - "9117:9117"                          # Expone métricas en el puerto 9117
+    command: --scrape_uri=http://web1/server-status?auto --telemetry.address=:9117
+                                             # Configura el exporter para leer métricas del endpoint /server-status de web1
+    depends_on:
+      - web1                                 # Se asegura de que web1 esté levantado antes de iniciar el exporter
+    restart: always
 
   # -------------------------
   # Contenedor web2
   # -------------------------
   web2:
-    build: .                                # Construye la imagen usando el mismo Dockerfile
-    container_name: web2                    # Nombre del contenedor
-    hostname: web2                          # Nombre de host interno
+    build: .                                
+    container_name: web2                     
+    hostname: web2                           
     ports:
-      - "8081:80"                           # Expone el puerto 80 del contenedor en el 8080 del host
+      - "8081:80"                            # Puerto 8081 del host
     volumes:
-      - ./web2/app:/var/www/html            # Monta el código de la aplicación
-    restart: always                         # Reinicia automáticamente
-    labels:
-      - "traefik.enable=true"               # Habilita Traefik
-      - "traefik.http.routers.web2.rule=Host(`192.168.1.100`)"       # Regla: VIP compartida
-      - "traefik.http.routers.web2.entrypoints=websecure"            # Solo HTTPS
-      - "traefik.http.routers.web2.tls=true"                         # TLS activado
-
-  # -------------------------
-  # SQL Server (para sesiones y datos)
-  # -------------------------
-  db:
-    image: mcr.microsoft.com/mssql/server:2022-latest   # Imagen oficial de SQL Server 2022
-    container_name: sqlserver
-    environment:
-      - ACCEPT_EULA=Y                                   # Acepta licencia
-      - SA_PASSWORD=Abcd1234.                           # Contraseña del usuario SA
-    ports:
-      - "1433:1433"                                     # Puerto estándar de SQL Server
+      - ./web2/app:/var/www/html             # Monta el código de la aplicación web2 en el contenedor
+      - ./apache-status.conf:/usr/local/apache2/conf/extra/httpd-status.conf  # Configuración de Apache para status
     restart: always
+    labels:
+      - "traefik.enable=true"                # Habilita Traefik para este contenedor
+      - "traefik.http.routers.web2.rule=Host(`192.168.1.100`)"  # Regla de enrutamiento: host igual a 192.168.1.100
+      - "traefik.http.routers.web2.entrypoints=websecure"       # Usa el entrypoint websecure (HTTPS)
+      - "traefik.http.routers.web2.tls=true"                    # Activa TLS para este router
+
+# -------------------------
+# Exporter para web2
+# -------------------------
+  web2_exporter:
+    image: bitnami/apache-exporter:latest    
+    container_name: web2_exporter
+    ports:
+      - "9118:9117"                          # Expone métricas en el puerto 9118 del host
+    command: --scrape_uri=http://web2/server-status?auto --telemetry.address=:9117
+                                             # Configura el exporter para leer métricas del endpoint /server-status de web2
+    depends_on:
+      - web2                                 # Se asegura de que web2 esté levantado antes de iniciar el exporter
+    restart: always
+
+networks:
+  default:
+    name: sigpol_net                         # Red compartida
