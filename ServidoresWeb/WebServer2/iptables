@@ -1,0 +1,7 @@
+num   pkts bytes target     prot opt in     out     source               destination         
+1        0     0 ACCEPT     6    --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:80
+2     4681  380K ACCEPT     6    --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:22
+3        5   300 ACCEPT     6    --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpts:8082:8083
+4      277 21052 ACCEPT     0    --  *      *       0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+5        0     0 ACCEPT     6    --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:9119
+6        0     0 ACCEPT     6    --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:9120

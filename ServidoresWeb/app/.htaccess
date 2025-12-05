@@ -1,0 +1,18 @@
+# Evitar listado de directorios
+Options -Indexes
+
+# Bloquear acceso directo solo a ficheros internos sensibles
+<FilesMatch "^(auth|session)\.php$">
+  Require all denied
+</FilesMatch>
+
+# Forzar HTTPS (adaptado para proxy inverso como Traefik)
+RewriteEngine On
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Cabeceras de seguridad
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set X-Content-Type-Options "nosniff"
+Header always set Referrer-Policy "strict-origin"
+Header always set Content-Security-Policy "default-src 'self'"

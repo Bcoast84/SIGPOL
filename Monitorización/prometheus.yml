@@ -1,0 +1,59 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  # Prometheus interno
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Balanceadores con Node Exporter
+  - job_name: 'balanceadores'
+    static_configs:
+      - targets: ['192.168.1.20:9100']
+        labels:
+          instance: 'balancer1'
+      - targets: ['192.168.1.21:9100']
+        labels:
+          instance: 'balancer2'
+
+  # Webservers Apache con apache_exporter
+  - job_name: 'apache'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['192.168.1.30:9117']
+        labels:
+          instance: 'web1'
+      - targets: ['192.168.1.30:9118']
+        labels:
+          instance: 'web2'
+      - targets: ['192.168.1.31:9119']
+        labels:
+          instance: 'web3'
+      - targets: ['192.168.1.31:9120']
+        labels:
+          instance: 'web4'
+
+  # SQL Servers con mssql_exporter
+  - job_name: 'sqlservers'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['192.168.1.11:9182']
+        labels:
+          instance: 'sqlserver1'
+      - targets: ['192.168.1.12:9182']
+        labels:
+          instance: 'sqlserver2'
+      - targets: ['192.168.1.60:9182']
+        labels:
+          instance: 'sql_listener'
+
+  # Traefik
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['192.168.1.20:8082']
+        labels:
+          instance: 'traefik1'
+      - targets: ['192.168.1.21:8082']
+        labels:
+          instance: 'traefik2'

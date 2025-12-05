@@ -1,0 +1,18 @@
+
+# TCP 1433 – Conexión de clientes a SQL Server
+New-NetFirewallRule -DisplayName "SQL Server TCP 1433" -Direction Inbound -Protocol TCP -LocalPort 1433 -Action Allow
+
+# UDP 1434 – SQL Server Browser
+New-NetFirewallRule -DisplayName "SQL Browser UDP 1434" -Direction Inbound -Protocol UDP -LocalPort 1434 -Action Allow
+
+# TCP 5022 – Always On Availability Groups
+New-NetFirewallRule -DisplayName "SQL AlwaysOn TCP 5022" -Direction Inbound -Protocol TCP -LocalPort 5022 -Action Allow
+
+# TCP 3343 – Windows Failover Cluster
+New-NetFirewallRule -DisplayName "Failover Cluster TCP 3343" -Direction Inbound -Protocol TCP -LocalPort 3343 -Action Allow
+
+# TCP 135 – RPC (Remote Procedure Call)
+New-NetFirewallRule -DisplayName "RPC TCP 135" -Direction Inbound -Protocol TCP -LocalPort 135 -Action Allow
+
+# TCP 9182 – Prometheus Exporter
+New-NetFirewallRule -DisplayName "Prometheus Exporter TCP 9182" -Direction Inbound -Protocol TCP -LocalPort 9182 -Action Allow

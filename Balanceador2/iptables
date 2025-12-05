@@ -1,0 +1,6 @@
+num   pkts bytes target     prot opt in     out     source               destination         
+1        0     0 ACCEPT     6    --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:80
+2        0     0 ACCEPT     6    --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:443
+3    12041 1024K ACCEPT     6    --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:9100
+4        1    60 ACCEPT     6    --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:8082
+5     1591  128K ACCEPT     6    --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:22
