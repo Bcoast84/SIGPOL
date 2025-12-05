@@ -162,10 +162,12 @@ CREATE TABLE [dbo].[SesionesPHP](
 );
 
 -- ========================================
--- VISTAS útiles para consultas frecuentes
+-- VISTAS para consultas frecuentes
 -- ========================================
 
+-- ========================================
 -- Vista: Usuarios con información completa
+-- ========================================
 CREATE VIEW vw_UsuariosCompletos AS
 SELECT 
     u.id_usuario,
@@ -186,8 +188,9 @@ INNER JOIN Persona p ON u.id_persona = p.id_persona
 INNER JOIN Cuartel c ON u.id_cuartel = c.id_cuartel
 LEFT JOIN Direccion d ON c.id_cuartel = d.id_cuartel AND d.tipo = 'Cuartel';
 GO
-
--- Vista: Cuarteles con dirección
+-- ========================================
+-- VISTA: Cuarteles con dirección
+-- ========================================
 CREATE VIEW vw_CuartelesCompletos AS
 SELECT 
     c.id_cuartel,
@@ -200,4 +203,24 @@ SELECT
     d.codigo_postal
 FROM Cuartel c
 LEFT JOIN Direccion d ON c.id_cuartel = d.id_cuartel AND d.tipo = 'Cuartel';
+GO
+
+-- ========================================
+-- VISTA: Vehículos con DNI y Ciudad del Propietario
+-- ========================================
+CREATE VIEW vw_VehiculosConPropietario AS
+SELECT 
+    v.id_vehiculo,
+    v.matricula,
+    v.marca,
+    v.modelo,
+    v.color,
+    v.año_fabricacion,
+    v.tipo_vehiculo,
+    v.fecha_registro,
+    p.dni,
+    d.ciudad
+FROM Vehiculo v
+INNER JOIN Persona p ON v.id_persona = p.id_persona
+LEFT JOIN Direccion d ON p.id_persona = d.id_persona AND d.principal = 1;
 GO
