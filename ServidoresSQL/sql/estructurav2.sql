@@ -136,7 +136,7 @@ CREATE TABLE Informe (
 );
 
 -- ========================================
--- TABLA: Auditoria (nueva - CRÍTICA)
+-- TABLA: Auditoria (CRÍTICA)
 -- ========================================
 CREATE TABLE Auditoria (
     id_auditoria INT PRIMARY KEY IDENTITY(1,1),
@@ -151,6 +151,15 @@ CREATE TABLE Auditoria (
     FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario)
 );
 
+-- ========================================
+-- TABLA: SesionesPHP (almacenar sesiones PHP)
+-- ========================================
+CREATE TABLE [dbo].[SesionesPHP](
+    [id_session]  NOT NULL,
+    [data_session] [nvarchar](max) NULL,
+    [last_update] [datetime] NULL,
+    CONSTRAINT PK_SesionesPHP PRIMARY KEY (id_session)
+);
 
 -- ========================================
 -- VISTAS útiles para consultas frecuentes
