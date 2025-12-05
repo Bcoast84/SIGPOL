@@ -155,7 +155,7 @@ CREATE TABLE Auditoria (
 -- TABLA: SesionesPHP (almacenar sesiones PHP)
 -- ========================================
 CREATE TABLE [dbo].[SesionesPHP](
-    [id_session]  NOT NULL,
+    [id_session] [int] IDENTITY(1,1) NOT NULL, 
     [data_session] [nvarchar](max) NULL,
     [last_update] [datetime] NULL,
     CONSTRAINT PK_SesionesPHP PRIMARY KEY (id_session)
